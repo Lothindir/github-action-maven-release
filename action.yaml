@@ -107,6 +107,8 @@ runs:
       uses: actions/checkout@v3
       with:
         ref: $BUILD_TAG
+        path: $BUILD_TAG
+        token: ${{ inputs.repo-token }}
 
     - name: Create tag
       if: ${{ inputs.version-tag == 'true' }}
