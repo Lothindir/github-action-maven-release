@@ -5,9 +5,11 @@ inputs:
   repo-token:
     description: "GitHub secret token"
     required: true
+    type: string
   ssh-private-key:
     description: 'The SSH private key used during the maven release git commit'
     required: true
+    type: string
 
   recurring-tag:
     description: 'Create and publish a recurring tag (latest/nightly/...)'
@@ -102,22 +104,29 @@ runs:
         package-manager-type: 'maven'
         bump: ${{ inputs.increment-version }}
 
+    - name: Check if previous build tag exists
+      uses: mukunku/tag-exists-action@v1.0.0
+      id: checkBuildTag
+      with:
+        tag: $BUILD_TAG
+      env:
+        GITHUB_TOKEN: ${{ inputs.repo-token }}
+
     - name: Checkout previous build tag
       if: ${{ inputs.version-tag == 'true' }}
       uses: actions/checkout@v3
       with:
         ref: $BUILD_TAG
-        path: $BUILD_TAG
-        token: ${{ inputs.repo-token }}
+        path: $GITHUB_WORKSPACE/$BUILD_TAG
 
     - name: Create tag
-      if: ${{ inputs.version-tag == 'true' }}
+      if: ${{ inputs.version-tag == 'true' && steps.checkBuildTag.outputs.exists == 'true' }}
       uses: rickstaa/action-create-tag@v1
       with:
         tag: ${{ steps.getBuildVersion.outputs.next-version }}
 
     - name: Checkout previous build tag
-      if: ${{ inputs.version-tag == 'true' }}
+      if: ${{ inputs.version-tag == 'true' && steps.checkBuildTag.outputs.exists == 'true' }}
       uses: actions/checkout@v3
         
     - name: Build with Maven
