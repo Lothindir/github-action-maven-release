@@ -45,21 +45,15 @@ inputs:
     required: true
     type: string
 
-  version-major:
-    description: 'Increment the major version number'
+  version-increment:
+    description: 'Define version to increment <- Patch by default'
     required: false
-    default: false
-    type: boolean
-  version-minor:
-    description: 'Increment the minor version number'
-    required: false
-    default: false
-    type: boolean
-  version-patch:
-    description: 'Increment the patch version number <- By default, we will increase the patch version'
-    required: false
-    default: false
-    type: boolean
+    default: 'patch'
+    type: choice
+    options:
+      - 'major'
+      - 'minor'
+      - 'patch'
   maven-args:
     description: 'The arguments to pass to maven on release'
     required: false
@@ -114,9 +108,7 @@ runs:
         git-release-bot-name: ${{ inputs.git-release-bot-name }}
         git-release-bot-email: ${{ inputs.git-release-bot-email }}
         release-branch-name: "main"
-        version-major: ${{ inputs.version-major }}
-        version-minor: ${{ inputs.version-minor }}
-        version-path: ${{ inputs.version-patch }}
+        version-increment: ${{ inputs.version-increment }}
         skip-bot-release-check: ${{ inputs.skip-bot-release-check }}
         maven-args: ${{ inputs.maven-args }}
       env:
