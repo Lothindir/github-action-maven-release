@@ -87,12 +87,14 @@ outputs:
     description: 'The version that has been released'
     value: ${{ steps.getBuildVersion.outputs.next-version }}
 
-env: 
-  BUILD_TAG: z_build
-
 runs:
   using: composite
+  env: 
+    BUILD_TAG: z_build
   steps:
+    - run: echo $BUILD_TAG && echo "$BUILD_TAG" && echo ${{ env.BUILD_TAG }}
+      shell: bash
+
     - name: Get Project Version from pom.xml
       uses: entimaniac/read-pom-version-action@1.0.0
       id: getVersion
