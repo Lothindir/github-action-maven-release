@@ -115,6 +115,7 @@ runs:
       id: checkBuildTag
       with:
         tag: ${{ inputs.build-tag }}
+        token: ${{ inputs.repo-token }}
       env:
         GITHUB_TOKEN: ${{ inputs.repo-token }}
 
