@@ -45,7 +45,7 @@ inputs:
     required: true
     type: string
 
-  version-increment:
+  increment-version:
     description: 'Define version to increment <- Patch by default'
     required: false
     default: 'patch'
@@ -108,7 +108,7 @@ runs:
         git-release-bot-name: ${{ inputs.git-release-bot-name }}
         git-release-bot-email: ${{ inputs.git-release-bot-email }}
         release-branch-name: "main"
-        version-increment: ${{ inputs.version-increment }}
+        version-increment: ${{ inputs.increment-version }}
         skip-bot-release-check: ${{ inputs.skip-bot-release-check }}
         maven-args: ${{ inputs.maven-args }}
       env:
