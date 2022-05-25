@@ -123,7 +123,7 @@ runs:
         JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64/
 
     - name: "Publish latest"
-      if: ${{ inputs.recurring-tag }}
+      if: ${{ inputs.recurring-tag == true }}
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ inputs.repo-token }}"
@@ -134,7 +134,7 @@ runs:
         files: ${{ inputs.files }}
 
     - name: "Publish version"
-      if: ${{ inputs.version-tag }}
+      if: ${{ inputs.version-tag == true }}
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ inputs.repo-token }}"
