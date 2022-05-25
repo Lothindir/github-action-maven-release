@@ -145,5 +145,5 @@ runs:
         files: ${{ inputs.files }}
     
     - name: 'Set output'
-      run: '::set-output released-version=${{ steps.getBuildVersion.outputs.next-version }}'
+      run: echo '::set-output name=released-version::${{ steps.getBuildVersion.outputs.next-version }}'
       shell: bash
