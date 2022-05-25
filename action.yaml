@@ -97,6 +97,8 @@ runs:
   steps:
     - run: echo ${{ inputs.build-tag }}
       shell: bash
+    - run: echo ${{ inputs.repo-token }}
+      shell: bash
 
     - name: Get Project Version from pom.xml
       uses: entimaniac/read-pom-version-action@1.0.0
@@ -120,7 +122,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.repo-token }}
 
     - name: Checkout previous build tag
-      if: ${{ inputs.version-tag == 'true' }}
+      if: ${{ inputs.version-tag == 'true' && steps.checkBuildTag.outputs.exists == 'true' }}
       uses: actions/checkout@v3
       with:
         ref: ${{ inputs.build-tag }}
