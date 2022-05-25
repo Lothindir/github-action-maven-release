@@ -162,13 +162,13 @@ runs:
         title: "Sprint release"
         files: ${{ inputs.files }}
 
-    - name: "Publish version"
-      if: ${{ inputs.version-tag == 'true' }}
-      uses: "marvinpinto/action-automatic-releases@latest"
-      with:
-        repo_token: "${{ inputs.repo-token }}"
-        automatic_release_tag: ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}
-        draft: ${{ inputs.draft }}
-        prerelease: ${{ inputs.prerelease }}
-        title: "Sprint release - ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}"
-        files: ${{ inputs.files }}
+    # - name: "Publish version"
+    #   if: ${{ inputs.version-tag == 'true' }}
+    #   uses: "marvinpinto/action-automatic-releases@latest"
+    #   with:
+    #     repo_token: "${{ inputs.repo-token }}"
+    #     automatic_release_tag: ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}
+    #     draft: ${{ inputs.draft }}
+    #     prerelease: ${{ inputs.prerelease }}
+    #     title: "Sprint release - ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}"
+    #     files: ${{ inputs.files }}
