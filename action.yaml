@@ -60,6 +60,11 @@ inputs:
     description: 'The arguments to pass to maven on release'
     required: false
     default: '-Ddockerfile.skip -DdockerCompose.skip -Dmaven.deploy.skip=true'
+  build-tag:
+    description: 'The name of the build tag used to keep track of the last release (can be ignored)'
+    required: false
+    default: 'z_build'
+    type: string
 
   git-release-bot-name:
     description: 'The git user name for committing the release'
@@ -89,10 +94,8 @@ outputs:
 
 runs:
   using: composite
-  env: 
-    BUILD_TAG: z_build
   steps:
-    - run: echo $BUILD_TAG && echo "$BUILD_TAG" && echo ${{ env.BUILD_TAG }}
+    - run: echo ${{ inputs.build-tag }}
       shell: bash
 
     - name: Get Project Version from pom.xml
@@ -111,7 +114,7 @@ runs:
       uses: mukunku/tag-exists-action@v1.0.0
       id: checkBuildTag
       with:
-        tag: ${{ env.BUILD_TAG }}
+        tag: ${{ inputs.build-tag }}
       env:
         GITHUB_TOKEN: ${{ inputs.repo-token }}
 
@@ -119,8 +122,8 @@ runs:
       if: ${{ inputs.version-tag == 'true' }}
       uses: actions/checkout@v3
       with:
-        ref: ${{ env.BUILD_TAG }}
-        path: ${{ env.GITHUB_WORKSPACE }}/${{ env.BUILD_TAG }}
+        ref: ${{ inputs.build-tag }}
+        path: ${{ env.GITHUB_WORKSPACE }}/${{ inputs.build-tag }}
 
     - name: Create tag
       if: ${{ inputs.version-tag == 'true' && steps.checkBuildTag.outputs.exists == 'true' }}
