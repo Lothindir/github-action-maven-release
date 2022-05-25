@@ -80,14 +80,15 @@ inputs:
     default: false
     type: boolean
 
-outputs:
-  released-version:
-    description: 'The version that has been released'
+# outputs:
+#   released-version:
+#     description: 'The version that has been released'
 
 runs:
   using: composite
   env: 
     GITHUB_WORKSPACE: $GITHUB_WORKSPACE/github-action-maven-release
+    BUILD_TAG: 'z_build'
   steps:
     - name: Get Project Version from pom.xml
       uses: entimaniac/read-pom-version-action@1.0.0
@@ -100,6 +101,22 @@ runs:
         version: ${{ steps.getVersion.outputs.version }}
         package-manager-type: 'maven'
         bump: ${{ inputs.increment-version }}
+
+    - name: Checkout previous build tag
+      if: ${{ inputs.version-tag == true }}
+      uses: actions/checkout@v3
+      with:
+        ref: $BUILD_TAG
+
+    - name: Create tag
+      if: ${{ inputs.version-tag == true }}
+      uses: rickstaa/action-create-tag@v1
+      with:
+        tag: ${{ steps.getBuildVersion.outputs.next-version }}
+
+    - name: Checkout previous build tag
+      if: ${{ inputs.version-tag == true }}
+      uses: actions/checkout@v3
         
     - name: Build with Maven
       uses: lothindir/github-actions-maven-release@master
@@ -110,7 +127,7 @@ runs:
         release-branch-name: "main"
         version-increment: ${{ inputs.increment-version }}
         skip-bot-release-check: ${{ inputs.skip-bot-release-check }}
-        maven-args: ${{ inputs.maven-args }}
+        maven-args: '${{ inputs.maven-args }} -Dtag=$BUILD_TAG'
       env:
         JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64/
 
@@ -135,7 +152,3 @@ runs:
         prerelease: ${{ inputs.prerelease }}
         title: "Sprint release - ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}"
         files: ${{ inputs.files }}
-    
-    - name: 'Set output'
-      run: echo '::set-output name=released-version::0.0.0'
-      shell: bash
