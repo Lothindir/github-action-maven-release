@@ -1,9 +1,94 @@
 name: Automatic build and release on Github with Maven
 description: Build, tag, release and upload to Github using Maven
 author: Lothindir
-# inputs:
+inputs:
+  repo-token:
+    description: "GitHub secret token"
+    required: true
+  ssh-private-key:
+    description: 'The SSH private key used during the maven release git commit'
+    required: true
 
-# outputs:
+  recurring-tag:
+    description: 'Create and publish a recurring tag (latest/nightly/...)'
+    required: false
+    default: true
+    type: boolean
+  recurring-tag-name:
+    description: 'The name for the recurring tag'
+    required: false
+    default: 'latest'
+    type: string
+  version-tag:
+    description: 'Create and publish a tag for each version'
+    required: false
+    default: true
+    type: boolean
+  version-tag-prefix:
+    description: 'The prefix for the version tag'
+    required: false
+    default: 'v'
+    type: string
+
+  prerelease:
+    description: 'Release as a prerelease on Github'
+    required: false
+    default: false
+    type: boolean
+  draft:
+    description: 'Release as a draft'
+    required: false
+    default: false
+    type: boolean
+  files:
+    description: 'The files to include in the release artifacts'
+    required: true
+    type: string
+
+  version-major:
+    description: 'Increment the major version number'
+    required: false
+    default: false
+    type: boolean
+  version-minor:
+    description: 'Increment the minor version number'
+    required: false
+    default: false
+    type: boolean
+  version-patch:
+    description: 'Increment the patch version number <- By default, we will increase the patch version'
+    required: false
+    default: false
+    type: boolean
+  maven-args:
+    description: 'The arguments to pass to maven on release'
+    required: false
+    default: '-Ddockerfile.skip -DdockerCompose.skip -Dmaven.deploy.skip=true'
+
+  git-release-bot-name:
+    description: 'The git user name for committing the release'
+    required: false
+    default: 'release-bot'
+    type: string
+  git-release-bot-email:
+    description: 'The git user email for committing the release'
+    required: false
+    default: 'release-bot@github.com'
+    type: string
+  release-branch-name:
+    description: 'Filter the branch to execute the release on'
+    required: false
+    default: 'main'
+    type: string
+  skip-bot-release-check:
+    description: 'Skip the git fetch and reset executed for safety by this action'
+    required: false
+    default: false
+    type: boolean
+
+outputs:
+  released-version:
+    description: 'The version that has been released'
 
 runs:
   using: composite
@@ -20,47 +105,44 @@ runs:
       with:
         version: ${{ steps.getVersion.outputs.version }}
         package-manager-type: 'maven'
-        bump: 'minor'
+        bump: ${{ inputs.increment-version }}
         
     - name: Build with Maven
       uses: lothindir/github-actions-maven-release@master
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-        git-release-bot-name: "release-bot-github "
-        git-release-bot-email: "release.bot.github@gmail.com"
+        ssh-private-key: ${{ inputs.ssh-private-key }}
+        git-release-bot-name: ${{ inputs.git-release-bot-name }}
+        git-release-bot-email: ${{ inputs.git-release-bot-email }}
         release-branch-name: "main"
-        version-minor: true
-        skip-bot-release-check: true
-        maven-args: "-Ddockerfile.skip -DdockerCompose.skip -Dmaven.deploy.skip=true"
+        version-major: ${{ inputs.version-major }}
+        version-minor: ${{ inputs.version-minor }}
+        version-path: ${{ inputs.version-patch }}
+        skip-bot-release-check: ${{ inputs.skip-bot-release-check }}
+        maven-args: ${{ inputs.maven-args }}
       env:
         JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64/
 
     - name: "Publish latest"
+      if: ${{ inputs.recurring-tag }}
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: "latest"
-        draft: true
-        prerelease: false
+        repo_token: "${{ inputs.repo-token }}"
+        automatic_release_tag: ${{ inputs.recurring-tag-name }}
+        draft: ${{ inputs.draft }}
+        prerelease: ${{ inputs.prerelease }}
         title: "Sprint release"
-        files: |
-          LICENSE
-          target/hyde-*.jar
-          target/hyde
-          target/hyde.exe
-          target/hyde-javadoc.zip
+        files: ${{ inputs.files }}
 
     - name: "Publish version"
+      if: ${{ inputs.version-tag }}
       uses: "marvinpinto/action-automatic-releases@latest"
       with:
-        repo_token: "${{ secrets.GITHUB_TOKEN }}"
-        automatic_release_tag: v${{ steps.getBuildVersion.outputs.next-version }}
-        draft: true
-        prerelease: false
-        title: "Sprint release - v${{ steps.getBuildVersion.outputs.next-version }}"
-        files: |
-          LICENSE
-          target/hyde-*.jar
-          target/hyde
-          target/hyde.exe
-          target/hyde-javadoc.zip
+        repo_token: "${{ inputs.repo-token }}"
+        automatic_release_tag: ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}
+        draft: ${{ inputs.draft }}
+        prerelease: ${{ inputs.prerelease }}
+        title: "Sprint release - ${{ inputs.version-tag-prefix }}${{ steps.getBuildVersion.outputs.next-version }}"
+        files: ${{ inputs.files }}
+    
+    - name: 'Set output'
+      run: '::set-output released-version=${{ steps.getBuildVersion.outputs.next-version }}'
